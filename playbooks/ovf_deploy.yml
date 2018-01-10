@@ -1,0 +1,11 @@
+---
+- name: Install VCSA on the given ESXi host
+  hosts: pytest
+  user: root
+  become: yes
+  gather_facts: false
+  vars_files:
+    - ../vars/ovf_deploy.yml
+  roles:
+    - role: ../roles/ovf_deploy
+

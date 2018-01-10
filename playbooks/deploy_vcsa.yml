@@ -1,0 +1,43 @@
+---
+- name: Install VCSA on the given ESXi host
+  hosts: local
+  user: root
+  become: yes
+  gather_facts: false
+  vars_files:
+    - ../vars/deployvcsa.yml
+  roles:
+    - role: ../roles/deployvcsa
+
+- name: adding vcsa host to the inventory memory
+  hosts: local
+  user: root
+  become: yes
+  gather_facts: false
+  vars_files:
+    - ../vars/deployvcsa.yml
+  tasks:
+    - name: add new host
+      add_host:
+        hostname: "{{ vcenter.ip }}"
+        ansible_ssh_user: root
+        ansible_ssh_pass: "{{ vcenter.password }}"
+
+- name: add user to the vcsa
+  hosts: "{{ vcenter.ip }}"
+  user: root
+  become: yes
+  gather_facts: false
+  vars_files:
+    - ../vars/deployvcsa.yml
+  tasks:
+    - name: enable vcsa shell
+      raw: shell.set --enabled True
+
+    - name: create a user
+      raw: pi shell /usr/lib/vmware-vmafd/bin/dir-cli user create --account admin_labs --first-name admin1 --last-name labs1 --user-password 'Melody1!' --password "{{ vcenter.password }}"
+
+    - name: add user to group
+      raw: pi shell /usr/lib/vmware-vmafd/bin/dir-cli group modify --name Administrators --add admin_labs --password "{{ vcenter.password }}"
+      register: result
+

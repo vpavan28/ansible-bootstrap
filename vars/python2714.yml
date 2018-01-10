@@ -1,0 +1,4 @@
+---
+download_dir: '/tmp'
+python2714_file: 'Python-2.7.14.tgz'
+install_python_2714: false

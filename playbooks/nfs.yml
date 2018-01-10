@@ -1,0 +1,9 @@
+- name: NFS server
+  hosts: pytest
+  user: root
+  become: yes
+  gather_facts: false
+  vars_files:
+    - ../vars/nfs-exports.yml
+  roles:
+    - role: ../roles/nfs-server

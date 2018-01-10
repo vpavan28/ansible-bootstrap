@@ -1,0 +1,11 @@
+---
+- name: Prepare ESXi installer ISO
+  hosts: bootstrap_host
+  user: root
+  become: yes
+  gather_facts: false
+  vars_files:
+    - ../vars/bootstrap_esxi_idrac.yml
+  roles:
+    - role: ../roles/bootstrap_esxi_idrac
+

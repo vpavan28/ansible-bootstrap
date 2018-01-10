@@ -1,0 +1,149 @@
+---
+    - name: Ensure genisoimage is installed
+      connection: local
+      yum:
+        name: genisoimage
+        state: present
+
+    - name: UnMount ESXi installer
+      connection: local
+      mount:
+        path: '/mnt/esxi_bootstrap'
+        state: unmounted
+
+    - name: Create the Mount Directory for ESXi ISO
+      connection: local
+      file: 
+        path: /mnt/esxi_bootstrap
+        state: directory
+        mode: 0755
+
+    - name: Create Directory for ESXi ISO to be copied
+      connection: local
+      file: 
+        path: /var/tmp/esxi6u3_dell
+        state: directory
+        mode: 0755
+
+    - name: Mount ESXi installer in mnt directory
+      connection: local
+      mount: 
+        path: '/mnt/esxi_bootstrap' 
+        src: "{{ esxISO }}" 
+        opts: loop 
+        fstype: iso9660 
+        state: mounted
+
+    - name: Copy ISO files
+      connection: local
+      copy: 
+        src: "/mnt/esxi_bootstrap/"
+        dest: "/var/tmp/esxi6u3_dell/"
+
+#    - meta: end_play
+
+    - name: Unmount ESXi installer from mnt directory
+      connection: local
+      mount:
+         path: '/mnt/esxi_bootstrap' 
+         state: unmounted
+
+    - name: Edit boot.cfg
+      connection: local
+      replace:
+        dest: '/var/tmp/esxi6u3_dell/boot.cfg'
+        regexp: 'kernelopt=runweasel'
+        replace: 'kernelopt=ks=cdrom:/KS/KS.CFG'
+
+    - name: KS directory creation
+      connection: local
+      file:
+        path: /var/tmp/esxi6u3_dell/KS
+        state: directory
+        #mode: 0755
+
+    - name: copy KS.CFG to the ESXi ISO
+      connection: local
+      template:
+        src: KS.j2
+        dest: /var/tmp/esxi6u3_dell/KS/KS.CFG
+
+    - name: Burn an ISO image
+      connection: local
+      command: "genisoimage -relaxed-filenames -J -R -o /var/tmp/esxi_bootstrap.iso -b isolinux.bin -c boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table /var/tmp/esxi6u3_dell/"
+      args:
+        chdir: /var/tmp/esxi6u3_dell/
+
+    - name: Copy ISO to the NFS share location which should be local to this server
+      connection: local
+      copy: 
+        src: /var/tmp/esxi_bootstrap.iso
+        dest: /var/tmp/nfs_esxi_share/
+        force: yes
+
+
+    - name: Delete esxi6u3_dell Directory
+      connection: local
+      file:
+        path: /var/tmp/esxi6u3_dell/
+        state: absent
+
+
+    - name: Get the facts of the local control machine
+      connection: local
+      setup:
+        gather_subset: all
+
+    #- debug: var=hostvars[inventory_hostname]['ansible_default_ipv4']['address']
+    #- debug: var=ansible_default_ipv4.address
+
+    #- meta: end_play
+
+    - name: Dettach any vitual mediaset virtual media
+      #raw: racadm config -g cfgRacVirtual -o cfgVirMediaAttached 0 
+      raw: racadm set iDRAC.VirtualMedia.Attached 0 
+      register: result
+      failed_when: "'ERROR' in result.stdout or 'COMMAND PROCESSING FAILED' in result.stdout or 'error' in result.stdout or result.rc != 0"
+    - debug: var=result
+
+    - name: set virtual media to auto-attach mode
+      #raw: racadm config -g cfgRacVirtual -o cfgVirMediaAttached 2
+      raw: racadm set iDRAC.VirtualMedia.Attached 2 
+      register: result
+      failed_when: "'ERROR' in result.stdout or 'COMMAND PROCESSING FAILED' in result.stdout or 'error' in result.stdout or result.rc != 0"
+    - debug: var=result
+
+    - name: mount remote image as virtual cd
+      raw: racadm remoteimage -c -u root -p melody -l {{ nfs_share_ipaddr }}:/var/tmp/nfs_esxi_share/esxi_bootstrap.iso
+      #raw: racadm remoteimage -c -u root -p melody -l {{ ansible_default_ipv4.address }}:/var/tmp/nfs_esxi_share/esxi_bootstrap.iso
+      register: result
+      failed_when: "'ERROR' in result.stdout or 'COMMAND PROCESSING FAILED' in result.stdout or 'error' in result.stdout or result.rc != 0"
+    - debug: var=result
+
+    - name: set the next boot to use alternate device only once (then revert to default/previous)
+      #raw: racadm config -g cfgServerInfo -o cfgServerBootOnce 1
+      raw: racadm set iDRAC.serverboot.BootOnce 1
+      register: result
+      failed_when: "'ERROR' in result.stdout or 'COMMAND PROCESSING FAILED' in result.stdout or 'error' in result.stdout or result.rc != 0"
+    - debug: var=result
+
+    - name: set the next boot device to be the virtual cd
+      #raw: racadm config -g cfgServerInfo -o cfgServerFirstBootDevice VCD-DVD
+      raw: racadm set iDRAC.serverboot.FirstBootDevice VCD-DVD
+      register: result
+      failed_when: "'ERROR' in result.stdout or 'COMMAND PROCESSING FAILED' in result.stdout or 'error' in result.stdout or result.rc != 0"
+    - debug: var=result
+
+    - name: reboot the underlying system
+      raw: racadm serveraction powercycle
+      register: result
+      failed_when: "'ERROR' in result.stdout or 'COMMAND PROCESSING FAILED' in result.stdout or 'error' in result.stdout or result.rc != 0"
+    - debug: var=result
+
+    - name: wait for the esxi ip to become available
+      connection: local
+      wait_for: 
+        host: "{{ bs_mgmt_ip }}"
+        port: 22
+        timeout: 900
+        delay: 30

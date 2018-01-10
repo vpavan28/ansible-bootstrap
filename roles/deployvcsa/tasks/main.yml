@@ -1,0 +1,195 @@
+---
+    - name: make sure pyvmomi is installed
+      pip:
+        name: pyvmomi
+        state: latest
+    - name: UnMount VCSA installer
+      connection: local
+      mount:
+        path: '/mnt/VCSA'
+        state: unmounted
+
+    - name: Create the Mount Directory for ESXi ISO
+      connection: local
+      file:
+        path: /mnt/VCSA
+        state: directory
+        mode: 0755
+
+    - name: Mount VCSA ISO in mnt directory
+      connection: local
+      mount:
+        path: '/mnt/VCSA'
+        src: "{{ vcISO }}"
+        opts: loop
+        fstype: iso9660
+        state: mounted
+
+    - name: Create JSON template file for VCSA 6.0 with embeded PSC
+      template: 
+        src: embedded_vCSA_on_ESXi.j2 
+        dest: /tmp/embedded_vCSA_on_ESXi.json
+      when: 
+        - vcenter.ip  ==  vcenter.psc_ip
+        - vcISO | search("-6.0.")
+
+    - debug:
+        msg: "Next step will take about 20 minutes if VC has not been previously deployed, so go grab some coffee !!!"
+
+    - name: Perform VCenter 60 installation via CLI
+      connection: local
+      command: "./vcsa-deploy install --accept-eula --no-esx-ssl-verify /tmp/embedded_vCSA_on_ESXi.json"
+      args:
+        chdir: /mnt/VCSA/vcsa-cli-installer/lin64/
+      when: vcISO | search("-6.0.")
+      register: vc60deploy
+      ignore_errors: True
+
+    - name: UnMount VCSA installer
+      connection: local
+      mount:
+        path: '/mnt/VCSA'
+        state: unmounted
+
+    - name: Delete the temporary JSON template file
+      connection: local
+      file: 
+        path: /tmp/vCSA_on_ESXi.json 
+        state: absent
+
+    - name: wait for the vcsa to become available
+      connection: local
+      wait_for:
+        host: "{{ vcenter.ip }}"
+        port: 443
+        timeout: 600
+        delay: 30
+
+    - name: wait for 60 seconds
+      connection: local
+      wait_for:
+        timeout: 60
+
+    - name: Create Datacenter
+      vmware_datacenter:
+        hostname: '{{ vcenter.ip }}'
+        username: "{{ vcenter.user }}"
+        password: "{{ vcenter.password }}"
+        datacenter_name: "{{ vcenter.datacenter }}"
+        state: present
+        validate_certs: False
+      delegate_to: localhost
+
+    - name: Create Clusters
+      vmware_cluster:
+        hostname: "{{ vcenter.ip }}"
+        username: "{{ vcenter.user }}"
+        password: "{{ vcenter.password }}"
+        datacenter_name: "{{ vcenter.datacenter }}"
+        cluster_name: "{{ item.key }}"
+        enable_ha: "{{ item.value.ha }}"
+        enable_drs: "{{ item.value.drs }}"
+        enable_vsan: "{{ item.value.vsan }}"
+        validate_certs: False
+      with_dict: "{{ clusters }}"
+    - name: Add Bootstrap ESXi host to vCenter
+      vmware_host:
+        hostname: "{{ vcenter.ip }}"
+        username: "{{ vcenter.user }}"
+        password: "{{ vcenter.password }}"
+        datacenter_name: '{{ vcenter.datacenter }}'
+        cluster_name: '{{ physicalESX.cluster_name }}'
+        esxi_hostname: '{{ physicalESX.host }}'
+        esxi_username: '{{ physicalESX.user }}'
+        esxi_password: '{{ physicalESX.password }}'
+        state: present
+        validate_certs: False
+#    - meta: end_play
+
+    - name: Create vStandard Switch port groups
+      vmware_portgroup:
+        hostname: "{{ vcenter.ip }}"
+        username: "{{ vcenter.user }}"
+        password: "{{ vcenter.password }}"
+        switch_name: "vSwitch0"
+        portgroup_name: "{{ item.key }}"
+        vlan_id: "{{ item.value.vlan_id }}"
+        validate_certs: False
+      with_dict: "{{ vss_portgroups }}"
+
+    - name: Create vSphere Distributed Switch (vds)
+      vmware_dvswitch:
+        hostname: "{{ vcenter.ip }}"
+        username: "{{ vcenter.user }}"
+        password: "{{ vcenter.password }}"
+        datacenter_name: "{{ vcenter.datacenter }}"
+        switch_name: "{{ vds.name }}"
+        mtu: "{{ vds.mtu }}"
+        uplink_quantity: "{{ vds.uplink_quantity }}"
+        discovery_proto: "{{ vds.discovery_proto }}"
+        discovery_operation: "{{ vds.discovery_operation }}"
+        state: present
+        validate_certs: False
+#    - meta: end_play
+
+    - name: Create Distributed Port Groups (on vds)
+      vmware_dvs_portgroup:
+        hostname: "{{ vcenter.ip }}"
+        username: "{{ vcenter.user }}"
+        password: "{{ vcenter.password }}"
+        switch_name: "{{ vds.name }}"
+        portgroup_name: "{{ item.key }}"
+        vlan_id: "{{ item.value.vlan_id }}"
+        num_ports: "{{ item.value.num_ports }}"
+        portgroup_type: "{{ item.value.portgroup_type }}"
+        state: present
+        validate_certs: False
+      with_dict: "{{ vds_portgroups }}"
+
+    - name: Add Bootstrap ESXi to VDS/Migrate uplinks to the new VDS
+      vmware_dvs_host:
+        hostname: "{{ vcenter.ip }}"
+        username: "{{ vcenter.user }}"
+        password: "{{ vcenter.password }}"
+        esxi_hostname: '{{ physicalESX.host }}'
+        switch_name: '{{ vds.name }}'
+        vmnics:
+          - '{{ dvs_host_vmnics.vmnic1 }}'
+          - '{{ dvs_host_vmnics.vmnic2 }}'
+        state: present
+        validate_certs: False
+
+    - name: Create VMKernel for VSS on Bootstrap ESXi-iSCSI1,iSCSI2 and vMotion
+      vmware_vmkernel:
+        hostname: '{{ physicalESX.host }}'
+        username: '{{ physicalESX.user }}'
+        password: '{{ physicalESX.password }}'
+        vswitch_name: "vSwitch0"
+        portgroup_name: "{{ item.name }}"
+        vlan_id: "{{ item.vlan_id }}"
+        ip_address: "{{ item.ip }}"
+        subnet_mask: "{{ item.subnet }}"
+        enable_vmotion: "{{ item.enable_vmotion }}"
+        validate_certs: False
+      with_items:
+        - "{{ vmkernels }}"
+
+    - name: Wait for VMKernels to be up
+      connection: local
+      wait_for:
+        timeout: 15
+
+    - name: Migrate the VMKernels from VSS to VDS on Bootstrap ESXi
+      vmware_migrate_vmk:
+        hostname: "{{ vcenter.ip }}"
+        username: "{{ vcenter.user }}"
+        password: "{{ vcenter.password }}"
+        esxi_hostname: '{{ physicalESX.host }}'
+        device: "{{ item.name }}"
+        current_switch_name: "vSwitch0"
+        current_portgroup_name: '{{ item.from_pg_name}}'
+        migrate_switch_name: '{{ vds.name }}'
+        migrate_portgroup_name: '{{ item.to_pg_name }}'
+        validate_certs: false
+      with_items:
+        - "{{ migrate_vmkernels }}"

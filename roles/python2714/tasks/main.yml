@@ -1,0 +1,167 @@
+---
+    - name: download get-pip.py
+      get_url:
+        url=https://bootstrap.pypa.io/get-pip.py
+        dest=/tmp
+
+    - name: install pip
+      command: "/usr/bin/python /tmp/get-pip.py"
+
+    - name: install pyvmomi
+      command: "/usr/bin/pip install pyvmomi"
+
+    - name: delete get-pip.py
+      file:
+        path: /tmp/get-pip.py
+        state: absent
+
+    - name: Ensure genisoimage is installed
+      connection: local
+      yum:
+        name: genisoimage
+        state: present
+
+    - name: Ensure nfsutilities are installed
+      connection: local
+      yum:
+        name: nfs-utils
+        state: present
+
+    - name: Enable and Start the nfs-server and rpcbind
+      connection: local
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      with_items:
+         - "rpcbind"
+         - "nfs-server"
+
+    - name: Install packages using yum
+      connection: local
+      yum:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - gcc
+        - openssl-devel
+        - bzip2-devel
+
+    - name: Install pip for system python
+      connection: local
+      easy_install:
+        name: pip
+        state: latest
+
+    - name: Install pyvmomi using pip
+      connection: local
+      pip:
+        name: pyvmomi
+        state: latest
+
+    - name: Check the available python versions
+      connection: local
+      stat:
+        path: "/usr/local/bin/python2.7"
+      register: python27_installed_version
+
+    - debug: var=python27_installed_version
+    - debug: var=install_python_2714
+
+    - name: Set a fact to install the required Python version
+      connection: local
+      set_fact:
+        install_python_2714: true
+      when: not python27_installed_version.stat.exists
+
+    - debug: var=install_python_2714
+
+    - name: Check whether the python2.7.14.tgz file exists in /tmp
+      connection: local
+      stat:
+        path: "{{ download_dir }}/{{ python2714_file }}"
+      register: file_exists
+
+    - name: Download python 2.7.14, If it doesn't exists in the /tmp directory
+      connection: local
+      get_url:
+        url: "https://www.python.org/ftp/python/2.7.14/Python-2.7.14.tgz"
+        dest: "{{ download_dir }}"
+        force: yes
+      when: not file_exists.stat.exists and (install_python_2714|bool)
+
+    - name: Sleep for 30 seconds to download the file
+      connection: local
+      wait_for: timeout=30
+      when: not file_exists.stat.exists and (install_python_2714|bool)
+      delegate_to: localhost
+
+    - name: Extract Python 2.7.14 archive file to /tmp
+      connection: local
+      unarchive:
+        src: "{{ download_dir }}/{{ python2714_file }}"
+        dest: "{{ download_dir }}"
+        remote_src: yes
+      when: install_python_2714|bool
+
+    - name: Configure install for Python 2.7.14 to install in /usr/local
+      connection: local
+      command: './configure --prefix=/usr/local --enable-unicode=ucs4 --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib" --enable-optimizations'
+      args:
+        chdir: "{{ download_dir }}/Python-2.7.14"
+      when: install_python_2714|bool
+
+    - name: Build Python 2.7.14
+      connection: local
+      make:
+        chdir: "{{ download_dir }}/Python-2.7.14"
+      when: install_python_2714|bool
+
+    - name: Install Python 2.7.14 using altinstall
+      connection: local
+      make:
+        chdir: "{{ download_dir }}/Python-2.7.14"
+        target: altinstall
+      become: yes
+      when: install_python_2714|bool
+
+    - name: Ensure pip is available for python 2.7.14
+      connection: local
+      command: "/usr/local/bin/python2.7 -m ensurepip"
+      when: install_python_2714|bool
+
+    - name: Install Ansible using pip for python2.7.14
+      connection: local
+      command: "/usr/local/bin/python2.7 -m pip install ansible"
+      when: install_python_2714|bool
+
+    - name: Install PyVmomi using pip for python2.7.14
+      connection: local
+      command: "/usr/local/bin/python2.7 -m pip install pyvmomi"
+      when: install_python_2714|bool
+
+    - name: Install dnspython using pip for python2.7.14
+      connection: local
+      command: "/usr/local/bin/python2.7 -m pip install dnspython"
+      when: install_python_2714|bool
+
+    - name: Create the soft links for /usr/local/bin/python2.7
+      connection: local
+      file:
+        src: "/usr/local/bin/python2.7"
+        dest: "/usr/local/bin/python"
+        state: link
+      when: install_python_2714|bool
+
+    - name: Export Path List
+      connection: local
+      shell: 'export PATH="/usr/local/bin:$PATH"'
+      when: install_python_2714|bool
+
+    - name: Remove the build directory
+      connection: local
+      file:
+        path: "{{ download_dir }}/Python-2.7.14"
+        state: absent
+      when: install_python_2714|bool
+

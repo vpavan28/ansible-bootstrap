@@ -1,0 +1,119 @@
+## - NOTE: Replace -v 0 with VLAN Numbers that represent your network...
+
+## - Accepts EULA, Sets root Password1, Wipes First Disk, Sets Management IP, DNS, Hostname, Removes Default "VM Network" and sets VLANID
+vmaccepteula
+rootpw {{bs_mgmt_passwd }}
+install --firstdisk --overwritevmfs
+network --device=vmnic2 --bootproto=static --ip={{ bs_mgmt_ip }} --netmask={{ bs_mgmt_mask }} --gateway={{ bs_mgmt_gw }} --nameserver={{ bs_mgmt_pdns }},{{ bs_mgmt_sdns }} --hostname={{ bs_mgmt_host }} --addvmportgroup=0 --vlanid={{ bs_mgmt_vlan }}
+reboot
+
+%pre --interpreter=busybox
+echo "clearpart --alldrives --overwritevmfs" > /tmp/installcmd
+echo "install --firstdisk=local --overwritevmfs" >> /tmp/installcmd
+
+%firstboot --interpreter=busybox
+
+## - Put host into maintenance mode - and wait for task to complete
+vim-cmd hostsvc/maintenance_mode_enter
+vsleep 5
+
+## dns
+esxcli system hostname set --domain={{ bs_mgmt_domain }} --host={{ bs_mgmt_host }}
+esxcli network ip dns server add --server={{ bs_mgmt_pdns }}
+esxcli network ip dns server add --server={{ bs_mgmt_sdns }}
+esxcli network ip dns search add --domain={{ bs_mgmt_domain }}
+
+# enable & start remote ESXi Shell (SSH)
+vim-cmd hostsvc/enable_ssh
+vim-cmd hostsvc/start_ssh
+
+# enable & start ESXi Shell
+vim-cmd hostsvc/enable_esx_shell
+vim-cmd hostsvc/start_esx_shell
+
+# supress ESXi Shell shell warning
+esxcli system settings advanced set -o /UserVars/SuppressShellWarning -i 1
+esxcli system settings advanced set -o /UserVars/ESXiShellTimeOut -i 1
+
+# Disable IPv6 for VMkernel interfaces
+esxcli system module parameters set --module tcpip4 --parameter-string ipv6=0
+
+# config vSwitch0
+esxcli network vswitch standard set --vswitch-name=vSwitch0 --mtu=1500
+esxcli network vswitch standard uplink add --uplink-name=vmnic2 --vswitch-name=vSwitch0
+esxcli network vswitch standard portgroup add --portgroup-name={{ bs_mgmt_portgroup }} --vswitch-name=vSwitch0
+esxcli network vswitch standard portgroup set --portgroup-name={{ bs_mgmt_portgroup }} --vlan-id={{ bs_mgmt_vlan }}
+esxcli network ip interface tag add --interface-name=vmk0 --tagname=Management
+
+# Rename local data store
+vim-cmd hostsvc/datastore/rename datastore1 {{ bs_mgmt_host }}-local
+
+#tuning vaai xcopy with xtremio
+esxcli system settings advanced set --int-value 256 --option /DataMover/MaxHWTransferSize
+
+#adjusting the ESX Host Parameters for XtremIO Storageadjusting the ESX Host Parameters for XtremIO Storage
+esxcli system settings advanced set --int-value 64 --option /Disk/SchedQuantum
+esxcli system settings advanced set --int-value 4096 --option /Disk/DiskMaxIOSize
+
+# Generate a new scratch directory for this host on a Datastore
+scratchdirectory=/vmfs/volumes/{{ bs_mgmt_host }}-local/.locker-$(hostname 2> /dev/null)-$(esxcfg-info -b 2> /dev/null)
+mkdir -p $scratchdirectory/installlogs
+vim-cmd hostsvc/advopt/update ScratchConfig.ConfiguredScratchLocation string $scratchdirectory
+esxcli system coredump partition set --enable true --smart
+
+## - Enable Firewall
+esxcli network firewall set --default-action false --enabled yes 
+FIREWALL_SERVICES="syslog sshClient ntpClient updateManager httpClient netdump"
+for SERVICE in ${FIREWALL_SERVICES} 
+do
+ esxcli network firewall ruleset set --ruleset-id ${SERVICE} --enabled yes 
+done 
+
+## - No ESXCLI command exists for adding and starting an NTP server
+### NTP CONFIGURATIONS ###
+cat > /etc/ntp.conf << __NTP_CONFIG__
+restrict default kod nomodify notrap noquerynopeer
+restrict 127.0.0.1
+server 0.us.pool.ntp.org
+server 1.us.pool.ntp.org
+server 2.us.pool.ntp.org
+server 3.us.pool.ntp.org
+__NTP_CONFIG__
+/sbin/chkconfig ntpd on
+
+vsleep 5
+
+/bin/cat > /etc/banner.new <<__SSHEOF__
+**********************************************************************
+#                              AT&T Inc                              #
+#        Property of AT&T inc, and should only be accessed by        #
+#          authorized AT&T Inc employees. Do not attempt to          #
+#               login unless you are an authorized user.             #
+#                                                                    #
+#  ****************************************************************  #
+#              WARNING: UNAUTHORIZED USE IS PROHIBITED               #
+#  ****************************************************************  #
+#                                                                    #
+#  Any authorized or unauthorized access and use, will be monitored  #
+#  and anyone using this system expressly consents to such           #
+#  monitoring. If such monitoring reveals possible envidence of      #
+#  criminal activity, such evidence will be provided to law          #
+#  enforcement personnel and can result in criminal or civil         #
+#  prosecution under applicable law of the United States.            #
+#                                                                    #
+**********************************************************************
+__SSHEOF__
+# copy new banner file to overwrite /etc/issue (esxi 5 store it's banner file here)
+cp /etc/banner.new /etc/issue
+
+# copy %first boot script logs to persisted datastore
+cp -rL /var/log $scratchdirectory/installlogs
+
+# exit maintenance mode
+esxcli system maintenanceMode set --enable false
+
+# backup ESXi configuration to persist changes
+/sbin/auto-backup.sh
+
+# Needed for configuration changes that could not be performed in esxcli
+esxcli system shutdown reboot -d 10 -r "rebooting after host configurations"

@@ -1,0 +1,7 @@
+---
+- name: restart nfs
+  service: 
+    name: "nfs-server"
+    state: "restarted"
+  become: true
+#  when: nfs_exports|length

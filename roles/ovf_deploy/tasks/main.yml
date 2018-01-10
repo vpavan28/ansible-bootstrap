@@ -1,0 +1,36 @@
+---
+    - name: Deploying OVF template into vCenter
+      vmware_deploy_ovf:
+        hostname: '{{ vcenter }}'
+        username: '{{ user_vc }}'
+        password: '{{ pass_vc }}'
+        datacenter: 'LabDC1'
+        datastore: 'r60210c14-local'
+        folder: '/LabDC1'
+        disk_provisioning: 'thin'
+        name: 'Test-using-OVFModule1'
+        ovf: '/tmp/UDA_Deploy/UDA_Deploy.ovf'
+        ovf_networks:
+          pg103-host-pxe: pg103-host-pxe
+#        networks:
+#          - name: pg103-host-pxe
+#            ip: 10.7.19.100
+#            gateway: 10.7.19.1
+#            netmask: 255.255.255.0
+#            device_type: vmxnet3
+#          - name: dPG105-host-iscsi2
+#            ip: 10.7.22.172
+#            gateway: 10.7.22.1
+#            netmask: 255.255.255.0
+#            device_type: vmxnet3
+#        customization:
+#          domain: encore-oam.com
+#          dns_servers:
+#          - 10.231.0.101
+#          - 10.231.0.103
+        power_on: false
+#        force: true
+        wait: false
+        wait_for_ip_address: false
+        validate_certs: False
+      delegate_to: localhost
