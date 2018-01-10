@@ -1,5 +1,5 @@
 - name: NFS server
-  hosts: pytest
+  hosts: local
   user: root
   become: yes
   gather_facts: false
