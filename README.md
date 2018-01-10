@@ -107,7 +107,12 @@ refer to the vars/deployvcsa.yml above.
 ```console
 
 [ansible@vcnms-lab-linux ~]$ ansible-playbook -i inventory/hosts_prod playbooks/python_2714.yml
+
 ```
+When the playbook execution is successful, logout of the machine and log back in. 
+Now, type `python -V` , you should see `2.7.14`. If you can't see that something went wrong.
+
+
 #### [To RUN nfs server utilities]
 ```console
 
@@ -120,6 +125,8 @@ refer to the vars/deployvcsa.yml above.
 
 ```
 `Once the playbook ran successfully without any issues, try to access the <MANAGEMENT IP or MANAGEMENT fqdn> from any browser. If you see esxi landing page then we can proceed to the next step. If it fails, we will have to debug depending on the error that we see.`
+
+**Make sure the vCenter FQDN record is added to DNS before processding to the next step.**
 
 #### [To RUN VCSA6.0, once the ESXi is up and runnning on boot strap server.]
 ```console
