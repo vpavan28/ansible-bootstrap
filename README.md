@@ -99,17 +99,27 @@ refer to the vars/deployvcsa.yml above.
 
 ```
 
+#### [To RUN pyhton update]
 ```yaml
-# [To RUN pyhton update]
+
 [ansible@vcnms-lab-linux ~]$ ansible-playbook -i inventory/hosts_prod playbooks/python_2714.yml
+```
+#### [To RUN nfs server utilities]
+```yaml
 
-# [To RUN nfs server utilities]
 [ansible@vcnms-lab-linux ~]$ ansible-playbook -i inventory/hosts_prod playbooks/nfs.yml
+```
+#### [To RUN ESXi6.0 on boot strap server]
+```yaml
 
-# [To RUN on RACK6 R620 servers]
 [ansible@vcnms-lab-linux ~]$ ansible-playbook -i inventory/hosts_prod playbooks/bootstrap_esxihost.yml
 
-# [To RUN on RACK7 R620 servers]
-[ansible@vcnms-lab-linux ~]$ ansible-playbook -i inventory/hosts_prod playbooks/deploy_vcsa.yml
-
 ```
+`Once the playbook ran successfully without any issues, try to access the <MANAGEMENT IP or MANAGEMENT fqdn> from any browser. If you see esxi landing page then we can proceed to the next step. If it fails, we will have to debug depending on the error that we see.`
+
+#### [To RUN VCSA6.0, once the ESXi is up and runnning on boot strap server.]
+```yaml
+
+[ansible@vcnms-lab-linux ~]$ ansible-playbook -i inventory/hosts_prod playbooks/deploy_vcsa.yml
+```
+`After the successful run of the playbook without any errors, then we have installed the VCSA. Try to access the <VCENTER_FQDN> from any browser, If you see the vcenter login page, then we can login using the credentials supplied in vars/deployvcsa.yml file.`
