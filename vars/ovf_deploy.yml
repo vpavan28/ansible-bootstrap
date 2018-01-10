@@ -1,4 +1,4 @@
 ---
-vcenter: '10.7.20.143'
-user_vc: 'administrator@encore-oam.com'
-pass_vc: 'Melody1!'
+vcenter: '<IP ADDR or HOSTNAME of the vCenter>'
+user_vc: '<vCenter ADMIN USER>'
+pass_vc: '<vCenter ADMIN USER PASSWORD>'
