@@ -47,18 +47,6 @@
         - openssl-devel
         - bzip2-devel
 
-    - name: Install pip for system python
-      connection: local
-      easy_install:
-        name: pip
-        state: latest
-
-    - name: Install pyvmomi using pip
-      connection: local
-      pip:
-        name: pyvmomi
-        state: latest
-
     - name: Check the available python versions
       connection: local
       stat:
