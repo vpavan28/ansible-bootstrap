@@ -1,5 +1,8 @@
 ## Create a boot strap server which will host Esxi6.0 as well as vCenter6.0 
 
+**Prerequisites: The host that we are going to boot strap should'be been executed the playbooks from [ansible-racadm](https://github.com/misteryiz/ansible-racadm).**
+
+
 > **Make sure the Anisble control machine can reach internet (because we need to install some yum packages). [A working yum proxy is good enough, If so update the yum.conf to use the proxy ].**
 
 > **We need to have the following ISO files. [ Download them from the dal01kck0001 server ]. Please download them to the Ansible control machine `/tmp` directory.**
