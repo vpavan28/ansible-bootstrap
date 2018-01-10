@@ -1,6 +1,7 @@
 ## Create a boot strap server which will host Esxi6.0 as well as vCenter6.0 
 
-**Prerequisites: The host that we are going to boot strap should'be been executed the playbooks from [ansible-racadm](https://github.com/misteryiz/ansible-racadm).**
+
+**Prerequisites: The host that we are going to boot strap should'be been already executed with the playbooks from [ansible-racadm](https://github.com/misteryiz/ansible-racadm).**
 
 
 > **Make sure the Anisble control machine can reach internet (because we need to install some yum packages). [A working yum proxy is good enough, If so update the yum.conf to use the proxy ].**
@@ -127,4 +128,4 @@ refer to the vars/deployvcsa.yml above.
 ```
 `After the successful run of the playbook without any errors, then we have installed the VCSA. Try to access the <VCENTER_FQDN> from any browser, If you see the vcenter login page, then we can login using the credentials supplied in vars/deployvcsa.yml file.`
 
-### > Deploying OVF using Ansible [...will update here shortly].
+### > DONE <
