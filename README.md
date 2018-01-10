@@ -123,3 +123,5 @@ refer to the vars/deployvcsa.yml above.
 [ansible@vcnms-lab-linux ~]$ ansible-playbook -i inventory/hosts_prod playbooks/deploy_vcsa.yml
 ```
 `After the successful run of the playbook without any errors, then we have installed the VCSA. Try to access the <VCENTER_FQDN> from any browser, If you see the vcenter login page, then we can login using the credentials supplied in vars/deployvcsa.yml file.`
+
+###Deploying OVF using Ansible [...will update here shortly].
