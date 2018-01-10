@@ -6,44 +6,44 @@ vcISO: '/tmp/VMware-VCSA-all-6.0.0-5326177.iso'
 
 # configuration for accessing the existing physical ESXi
 physicalESX:
-  host: '10.7.20.140' 
+  host: '<BOOT_STRAP_HOSTNAME or IP>' 
   user: 'root' 
-  password: 'Melody1!' 
-  vlan: 104
+  password: '<BOOT_STRAP_HOST_PASSWORD>' 
+  vlan: <MANAGEMENT_VLAN>
   vswitch: vSwitch0
   cluster_name: 'Management'
 
 # the vCenter appliance that need to be deployed
 vcenter:
-  ip: '10.7.20.143'
+  ip: '<vCENTER_IP>'
   mask: '24'
-  gw: '10.7.20.1'
-  network: 'pg104-host-mgmt'
-  name: '10.7.20.143'
-  psc_name: '10.7.20.143'
-  psc_ip: '10.7.20.143'
+  gw: '<vCENTER_IP_GATEWAY>'
+  network: '<MANAGEMENT_PORTGROUP>'
+  name: '<vCENTER_FQDN>'
+  psc_name: '<vCENTER_FQDN>'
+  psc_ip: '<vCENTER_IP>'
   thin: 'true'
-  user: 'administrator@encore-oam.com' 
-  password: 'Melody1!' 
-  datacenter: 'LabDC1' 
-  datastore: 'r60210c14-local'
-  domain: 'encore-oam.com'
+  user: 'administrator@<DOMAIN_NAME>' 
+  password: '<vCenter_PASSWORD>' 
+  datacenter: '<DATACENTER_NAME>' 
+  datastore: '<DATASTORE_NAME_should be [PHYSICALHOSTNAME-local]>'
+  domain: '<DOMAIN_NAME>'
 # if there is existing VC connected to the physical ESXi change the configuration here. If there is no existing VC the config must be the same as the vcenter section above
 vc_mng:
-  ip: '10.7.20.143'
-  mask: '27'
-  gw: '10.7.20.1'
-  network: 'pg104-host-mgmt'
-  name: '10.7.20.143'
-  user: 'administrator@encore-oam.com' 
-  password: 'Melody1!' 
-  datacenter: 'LabDC1' 
-  datastore: 'r60210c14-local'
-  domain: 'encore-oam.com'
+  ip: '<vCENTER_IP>'
+  mask: '24'
+  gw: '<vCENTER_IP_GATEWAY>'
+  network: '<MANAGEMENT_PORTGROUP>'
+  name: '<vCENTER_FQDN>'
+  user: 'administrator@<DOMAIN_NAME>' 
+  password: '<vCenter_PASSWORD>' 
+  datacenter: '<DATACENTER_NAME>' 
+  datastore: '<DATASTORE_NAME_should be [PHYSICALHOSTNAME-local]>'
+  domain: '<DOMAIN_NAME>'
 
-dns1: '10.231.0.101'
-dns2: '10.231.0.103'
-domain: 'encore-oam.com'
+dns1: '<PRIMARY_DNS>'
+dns2: '<PRIMARY_DNS>'
+domain: '<DOMAIN_NAME>'
 
 # You can add, remove or rename clusters in this section, you can specify to which cluster specific nested ESXi to be connected to
 clusters:
@@ -66,10 +66,10 @@ clusters:
 
 #Below are the standard port groups
 vss_portgroups:
-  pg103-host-pxe:
-    vlan_id: 103
-  pg104-host-mgmt:
-    vlan_id: 104
+  <PXE_PORTGROUP_NAME>:
+    vlan_id: <PXE_VLAN>
+  <MANAGEMENT_PORTGROUP>:
+    vlan_id: <MANAGEMENT_VLAN>
 
 #Below are the vSphere Distributed Switch and distributed port groups
 vds:
@@ -79,26 +79,26 @@ vds:
   discovery_proto: 'cdp'
   discovery_operation: 'both'
 
-#Below are the standard port groups
+#Below are the standard port groups, should list all the port groups that a VDS switch will have
 vds_portgroups:
-  dPG103-host-mgmt:
-    vlan_id: 103
+  <PORTGROUP_NAME_1>:
+    vlan_id: <PORTGROUP_NAME_2_VLAN_ID>
     num_ports: 8
     portgroup_type: earlyBinding
-  dPG104-host-mgmt:
-    vlan_id: 104
+  <PORTGROUP_NAME_2>:
+    vlan_id: <PORTGROUP_NAME_2_VLAN_ID>
     num_ports: 8
     portgroup_type: earlyBinding
-  dPG105-host-iscsi1:
-    vlan_id: 105
+  <PORTGROUP_NAME_3>:
+    vlan_id: <PORTGROUP_NAME_3_VLAN_ID>
     num_ports: 8
     portgroup_type: earlyBinding
-  dPG106-host-iscsi2:
-    vlan_id: 106
+  <PORTGROUP_NAME_4>:
+    vlan_id: <PORTGROUP_NAME_4_VLAN_ID>
     num_ports: 8
     portgroup_type: earlyBinding
-  dPG107-host-vmotion:
-    vlan_id: 107
+  <PORTGROUP_NAME_5>:
+    vlan_id: <PORTGROUP_NAME_5_VLAN_ID>
     num_ports: 8
     portgroup_type: earlyBinding
 
@@ -110,18 +110,18 @@ dvs_host_vmnics:
 #Below are the parameters used to create a VMKernel Port
 vmkernels:
   - name: iscsi1_kernel
-    vlan_id: 105
-    ip: 10.7.21.140
+    vlan_id: <ISCSI1_VLAN>
+    ip: <BOOTSTRAP_ISCSI1_IP>
     subnet: 255.255.255.0
     enable_vmotion: False
   - name: iscsi2_kernel
-    vlan_id: 106
-    ip: 10.7.22.140
+    vlan_id: <ISCSI2_VLAN>
+    ip: <BOOTSTRAP_ISCSI2_IP>
     subnet: 255.255.255.0
     enable_vmotion: False
   - name: vmotion_kernel
-    vlan_id: 104
-    ip: 10.7.23.140
+    vlan_id: <VMOTION_VLAN>
+    ip: <BOOTSTRAP_VMOTION_IP>
     subnet: 255.255.255.0
     enable_vmotion: True
 
@@ -129,20 +129,15 @@ vmkernels:
 migrate_vmkernels:
   - name: vmk1
     from_pg_name: iscsi1_kernel
-    to_pg_name: dPG105-host-iscsi1
+    to_pg_name: <ISCSI1_PORTGROUP_NAME_ON_VDS>
   - name: vmk2
     from_pg_name: iscsi2_kernel
-    to_pg_name: dPG106-host-iscsi2
+    to_pg_name: <ISCSI2_PORTGROUP_NAME_ON_VDS>
   - name: vmk3
     from_pg_name: vmotion_kernel
-    to_pg_name: dPG107-host-vmotion
+    to_pg_name: <VMOTION_PORTGROUP_NAME_ON_VDS>
 
 # vMotion vlan and network, no need to be reachible, you can configure random values here
-vmotion_vlan: 2078
+vmotion_vlan: <VMOTION_VLAN>
 vmotion_mask: 255.255.255.0
-vmotion_gw: 10.7.23.1
-
-# vSAN  vlan and network, no need to be reachible, you can configure random values here
-vsan_vlan: 2079
-vsan_mask: 255.255.255.0
-vsan_gw: 172.17.173.250
+vmotion_gw: <VMOTION_GATEWAY>
