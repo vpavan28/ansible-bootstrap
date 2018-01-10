@@ -66,7 +66,7 @@ nfs_share_ipaddr: '<NFS SHARE HOST IP[which is the IP of Ansible Conotrol Machin
 
 bs_mgmt_host: '<BOOT_STRAP_HOSTNAME>'
 bs_mgmt_ip: '<BOOT_STRAP_MANAGEMENT_IP>'
-bs_mgmt_mask: '255.255.255.0'
+bs_mgmt_mask: '<BOOT_STRAP_MANAGEMENT_IP_SUBNET>'
 bs_mgmt_gw: '<BOOT_STRAP_MANAGEMENT_GATEWAY>'
 bs_mgmt_domain: '<DOMAIN NAME>'
 bs_mgmt_pdns: '<PRIMARY DNS>'
