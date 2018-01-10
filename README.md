@@ -124,4 +124,4 @@ refer to the vars/deployvcsa.yml above.
 ```
 `After the successful run of the playbook without any errors, then we have installed the VCSA. Try to access the <VCENTER_FQDN> from any browser, If you see the vcenter login page, then we can login using the credentials supplied in vars/deployvcsa.yml file.`
 
-###Deploying OVF using Ansible [...will update here shortly].
+### > Deploying OVF using Ansible [...will update here shortly].
