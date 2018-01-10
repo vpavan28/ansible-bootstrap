@@ -1,4 +1,5 @@
 ---
+#"/var/tmp/nfs_esxi_share  <IDRAC IP ADDRESS RANGE/SUBNET>(rw,sync,no_root_squash,no_subtree_check)"
 nfs_exports: [
 "/var/tmp/nfs_esxi_share  10.7.20.144(rw,sync,no_root_squash,no_subtree_check)",
 "/var/tmp/nfs_esxi_share  10.231.7.0/23(rw,sync,no_root_squash,no_subtree_check)",
