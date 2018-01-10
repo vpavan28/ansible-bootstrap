@@ -1,4 +1,4 @@
-- name: Update the python to 2714 an dinstall pyvmomi along with anisble
+- name: Update the python to 2714 and install pyvmomi along with anisble
   hosts: local
   user: root
   become: yes
