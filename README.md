@@ -96,7 +96,7 @@ refer to the vars/deployvcsa_EXAMPLE.yml above.
 ```
 [We need to get the NICs information for the ESXi Host, log in to the ESXi using any browser, poiny your browser to `https://bs_mgmt_host/`and `username: root` `password: bs_mgmt_passwd` values given in /home/ansible/vars/bootstrap_esxi_idrac.yml file.]
 
-![VMNic](VMNic.png)
+![VMNic](VMNic.PNG)
 
 **Make sure we can access/ping BOOT_STRAP_IP from the Ansible control Machine.**
 
