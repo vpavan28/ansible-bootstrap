@@ -3,6 +3,22 @@
       pip:
         name: pyvmomi
         state: latest
+
+    - name: Search DNS server for VC A and PTR records
+      set_fact:
+         A_record: "{{ lookup('dig', '{{ vcenter.name }}', '@{{ dns1 }}') }}"
+         PTR_record: "{{ lookup('dig', '{{ vcenter.ip }}/PTR','@{{ dns1 }}') }}"
+
+    - name: Fail when vCenter A record in DNS vs Input provided don't match
+      fail:
+        msg: "Given vCenter [A Record : {{ vcenter.ip }}] doesn't match DNS [A Record : {{ A_record }}]"
+      when: vcenter.ip != A_record
+
+    - name: Fail when vCenter PTR record in DNS vs Input provided don't match
+      fail:
+        msg: "Given vCenter [PTR Record : {{ vcenter.name }}] doesn't match DNS [PTR Record : {{ PTR_record }}]"
+      when: vcenter.name != PTR_record
+        
     - name: UnMount VCSA installer
       connection: local
       mount:
