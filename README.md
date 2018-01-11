@@ -33,6 +33,12 @@
 
 **Place the contents of `hosts_prod` in to the existing file `/home/ansible/inventory/hosts_prod` file. [Do not Replace the existing file contents. Instead add the content as shown in the file to the respective places, If the below lines doesn't exist.]**
 
+Follow the below format.
+```
+[bootstrap_host]
+#idrachost1 ansible_host=<IP ADDRESS of idrachost1> idrac_racname=<idrachost1 name from DNS> model=<idrachost1 SERVER MODEL>
+```
+
 ```yaml
 [all:children]
 r620_servers
@@ -41,10 +47,10 @@ mgmt_servers
 bootstrap_host   <-- add this line
 
 [bootstrap_host]  <-- add this line
-r60210c14-bmc ansible_host=10.231.9.28 idrac_racname=r60210c14-bmc model=630   <-- add this line
+r60210c14-bmc ansible_host=10.231.9.28 idrac_racname=r60210c14-bmc model=630   <-- add this line and change the values accrodingly.
 
 [bootstrap_host:vars]                 <-- add this line
-ansible_ssh_pass=<IDRAC_PASSWORD>     <-- add this line
+ansible_ssh_pass=<IDRAC_PASSWORD>     <-- add this line and replace with actual idrac password
 ansible_ssh_user=root                 <-- add this line
 
 [mgmt_servers]
@@ -55,9 +61,11 @@ ansible_ssh_user=root                 <-- add this line
 ```
 
 **Change the `/home/ansible/vars/nfs-exports.yml` file to reflect the IP Addresses from where you can access the NFS-Share. This is to share the ESXI ISO for boot strap over the iDrac.**
+
+Example:
 ```yml
 nfs_exports: [
-"/var/tmp/nfs_esxi_share  <IDRAC IP ADDRESS RANGE/SUBNET>(rw,sync,no_root_squash,no_subtree_check)",
+"/var/tmp/nfs_esxi_share  <IDRAC IP ADDRESS RANGE/SUBNET_PREFIX>(rw,sync,no_root_squash,no_subtree_check)",
 "/var/tmp/nfs_esxi_share  10.231.7.0/24(rw,sync,no_root_squash,no_subtree_check)",
 ]
 
