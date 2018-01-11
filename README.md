@@ -62,6 +62,8 @@ ansible_ssh_user=root                 <-- add this line
 
 * **Change the `/home/ansible/vars/nfs-exports.yml` file to reflect the IP Addresses from where you can access the NFS-Share. This is to share the ESXI ISO for boot strap over the iDrac.**
 
+**copy this line `"/var/tmp/nfs_esxi_share  <IDRAC IP ADDRESS RANGE/SUBNET_PREFIX>(rw,sync,no_root_squash,no_subtree_check)",` inside the `nfs_exports` if you want to add more NFS shares by replacing with approriate share names and IP addresses.**
+
 Example:
 ```yml
 nfs_exports: [
@@ -94,6 +96,9 @@ bs_mgmt_passwd: '<BOOT_STRAP_HOST_PASSWORD TO SET>'
 ```yml
 refer to the vars/deployvcsa_EXAMPLE.yml above.
 ```
+
+**We can extend the variables which are defined in the groups (such as clusters, vss_portgroups, vds_portgroups, vmkernels, migrate_vmkernels), If we have to add more items in them. Simply copy and define the parameters with in the each group.**
+
 [We need to get the NICs information for the ESXi Host, log in to the ESXi using any browser, poiny your browser to `https://bs_mgmt_host/`and `username: root` `password: bs_mgmt_passwd` values given in /home/ansible/vars/bootstrap_esxi_idrac.yml file. The NIC are the 10G NICs that are isntalled on the server, for use they are vmnic4 and vmnic5. Find yours, and place them in the `dvs_host_vmnics` section of vars/deployvcsa.yml.]
 
 ![VMNic](VMNic.PNG)
