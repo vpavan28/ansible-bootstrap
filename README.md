@@ -94,7 +94,7 @@ bs_mgmt_passwd: '<BOOT_STRAP_HOST_PASSWORD TO SET>'
 ```yml
 refer to the vars/deployvcsa_EXAMPLE.yml above.
 ```
-[We need to get the NICs information for the ESXi Host, log in to the ESXi using any browser, poiny your browser to `https://bs_mgmt_host/`and `username: root` `password: bs_mgmt_passwd` values given in /home/ansible/vars/bootstrap_esxi_idrac.yml file.]
+[We need to get the NICs information for the ESXi Host, log in to the ESXi using any browser, poiny your browser to `https://bs_mgmt_host/`and `username: root` `password: bs_mgmt_passwd` values given in /home/ansible/vars/bootstrap_esxi_idrac.yml file. The NIC are the 10G NICs that are isntalled on the server, for use they are vmnic4 and vmnic5. Find yours, and place them in the `dvs_host_vmnics` section of vars/deployvcsa.yml.]
 
 ![VMNic](VMNic.PNG)
 
