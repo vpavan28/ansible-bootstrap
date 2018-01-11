@@ -1,0 +1,19 @@
+---
+# path to the ESXi Installer ISO
+esxISO: '/tmp/VMware-VMvisor-Installer-6.0.0.update03-5224934.x86_64-DellEMC_Customized-A03.iso'
+
+# path to vCenter installer ISO
+vcISO: '/tmp/VMware-VCSA-all-6.0.0-5326177.iso'
+
+nfs_share_ipaddr: '10.7.240.133'
+
+bs_mgmt_host: r60210c14
+bs_mgmt_ip: '10.7.20.130'
+bs_mgmt_mask: '255.255.255.0'
+bs_mgmt_gw: '10.7.20.1'
+bs_mgmt_domain: 'encore-oam.com'
+bs_mgmt_pdns: '10.231.0.101'
+bs_mgmt_sdns: '10.231.0.103'
+bs_mgmt_vlan: 104
+bs_mgmt_portgroup: "pg104-host-mgmt"
+bs_mgmt_passwd: "**********"
