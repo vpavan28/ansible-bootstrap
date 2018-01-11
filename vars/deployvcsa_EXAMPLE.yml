@@ -1,0 +1,143 @@
+# path to the ESXi Installer ISO
+esxISO: '/tmp/VMware-VMvisor-Installer-6.0.0.update03-5224934.x86_64-DellEMC_Customized-A03.iso'
+
+# path to vCenter installer ISO
+vcISO: '/tmp/VMware-VCSA-all-6.0.0-5326177.iso'
+
+# configuration for accessing the existing physical ESXi
+physicalESX:
+  host: '10.7.20.130'
+  user: 'root'
+  password: '*******'
+  vlan: 104
+  vswitch: vSwitch0
+  cluster_name: 'Management'
+
+# the vCenter appliance that need to be deployed
+vcenter:
+  ip: '10.7.20.143'
+  mask: '24'
+  gw: '10.7.20.1'
+  network: 'pg104-host-mgmt'
+  name: '10.7.20.143'
+  psc_name: '10.7.20.143'
+  psc_ip: '10.7.20.143'
+  thin: 'true'
+  user: 'administrator@encore-oam.com'
+  password: 'Melody1!'
+  datacenter: 'LabDC1'
+  datastore: 'r60210c14-local'
+  domain: 'encore-oam.com'
+# if there is existing VC connected to the physical ESXi change the configuration here. If there is no existing VC the config must be the same as the vcenter section above
+vc_mng:
+  ip: '10.7.20.143'
+  mask: '27'
+  gw: '10.7.20.1'
+  network: 'pg104-host-mgmt'
+  name: '10.7.20.143'
+  user: 'administrator@encore-oam.com'
+  password: '*******'
+  datacenter: 'LabDC1'
+  datastore: 'r60210c14-local'
+  domain: 'encore-oam.com'
+
+dns1: '10.231.0.101'
+dns2: '10.231.0.103'
+domain: 'encore-oam.com'
+
+# You can add, remove or rename clusters in this section, you can specify to which cluster specific nested ESXi to be connected to
+clusters:
+  Management:
+    ha: True
+    drs: True
+    vsan: False
+  AZ1:
+    ha: False
+    drs: True
+    vsan: False
+  AZ2:
+    ha: False
+    drs: True
+    vsan: False
+  SSD:
+    ha: False
+    drs: False
+    vsan: False
+
+#Below are the standard port groups
+vss_portgroups:
+  pg103-host-pxe:
+    vlan_id: 103
+  pg104-host-mgmt:
+    vlan_id: 104
+
+#Below are the vSphere Distributed Switch and distributed port groups
+vds:
+  name: 'dvSwitch1'
+  mtu: 1500
+  uplink_quantity: 2
+  discovery_proto: 'cdp'
+  discovery_operation: 'both'
+
+#Below are the standard port groups
+vds_portgroups:
+  dPG103-host-mgmt:
+    vlan_id: 103
+    num_ports: 8
+    portgroup_type: earlyBinding
+  dPG104-host-mgmt:
+    vlan_id: 104
+    num_ports: 8
+    portgroup_type: earlyBinding
+  dPG105-host-iscsi1:
+    vlan_id: 105
+    num_ports: 8
+    portgroup_type: earlyBinding
+  dPG106-host-iscsi2:
+    vlan_id: 106
+    num_ports: 8
+    portgroup_type: earlyBinding
+  dPG107-host-vmotion:
+    vlan_id: 107
+    num_ports: 8
+    portgroup_type: earlyBinding
+
+#Below are the uplinks for adding host to VDS
+#These are the 10G NIC cards, may vary for your host. Please log into the ESXi host and find out the names.
+dvs_host_vmnics:
+  vmnic1: 'vmnic4'
+  vmnic2: 'vmnic5'
+
+#Below are the parameters used to create a VMKernel Port
+vmkernels:
+  - name: iscsi1_kernel
+    vlan_id: 105
+    ip: 10.7.21.140
+    subnet: 255.255.255.0
+    enable_vmotion: False
+  - name: iscsi2_kernel
+    vlan_id: 106
+    ip: 10.7.22.140
+    subnet: 255.255.255.0
+    enable_vmotion: False
+  - name: vmotion_kernel
+    vlan_id: 104
+    ip: 10.7.23.140
+    subnet: 255.255.255.0
+    enable_vmotion: True
+#Below are the list of items needed for migrating VMKernel from the vSwitch0 to VDS
+migrate_vmkernels:
+  - name: vmk1
+    from_pg_name: iscsi1_kernel
+    to_pg_name: dPG105-host-iscsi1
+  - name: vmk2
+    from_pg_name: iscsi2_kernel
+    to_pg_name: dPG106-host-iscsi2
+  - name: vmk3
+    from_pg_name: vmotion_kernel
+    to_pg_name: dPG107-host-vmotion
+
+# vMotion vlan and network, no need to be reachable, you can configure random values here
+vmotion_vlan: 104
+vmotion_mask: 255.255.255.0
+vmotion_gw: 10.7.23.1
