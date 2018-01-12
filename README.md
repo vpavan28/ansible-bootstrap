@@ -75,6 +75,8 @@ nfs_exports: [
 
 * **Change the `/home/ansible/vars/bootstrap_esxi_idrac.yml` file to reflect the NFS SHARE IP and BOOT STRAP Host details. These details will be used in creating the ESXI boot strap ISO. These parameters are used to access the ESXi Host once the installation is done.**
 
+`Refer to the vars/bootstrap_esxi_idrac_EXAMPLE.yml file above.`
+
 ```yml
 nfs_share_ipaddr: '<NFS SHARE HOST IP[which is the IP of Ansible Conotrol Machine]>'
 
