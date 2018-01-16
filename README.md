@@ -4,7 +4,7 @@
 **Prerequisites: The host that we are going to boot strap should'be been already executed with the playbooks from [ansible-racadm](https://github.com/misteryiz/ansible-racadm).**
 
 
-> **Make sure the Anisble control machine can reach internet (because we need to install some yum packages). [A working yum proxy is good enough, If so update the yum.conf to use the proxy ].**
+> **Make sure the Anisble control machine can reach internet (because we need to install some yum packages as well as pip packages). [A working yum proxy and  a general https proxy is good enough. For yum proxy, update yum.conf and for the https proxy, at the command line, type `export https://<proxy_server>:<port_number>`.].**
 
 > **We need to have the following ISO files. [ Download them from the dal01kck0001 server ]. Please download them to the Ansible control machine `/tmp` directory.**
 * Dell Esxi 6.0 OS : `VMware-VMvisor-Installer-6.0.0.update03-5224934.x86_64-DellEMC_Customized-A03.iso`
@@ -58,6 +58,12 @@ ansible_ssh_user=root                 <-- add this line
 ..
 
 
+```
+**Also, update the file `/home/ansible/inventory/hosts_prod` at the end to have the below lines.**
+
+```yml
+[local]
+localhost ansible_connection=local
 ```
 
 * **Change the `/home/ansible/vars/nfs-exports.yml` file to reflect the IP Addresses from where you can access the NFS-Share. This is to share the ESXI ISO for boot strap over the iDrac.**
