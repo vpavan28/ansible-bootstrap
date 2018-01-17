@@ -3,6 +3,10 @@
   user: root
   become: yes
   gather_facts: false
+# uncomment the below three lines if you have a proxy in your environment.
+#  environment:
+#    https_proxy: http://PROXY_SERVER:PORT/
+#    http_proxy: http://PROXY_SERVER:PORT/
   vars_files:
     - ../vars/nfs-exports.yml
   roles:
