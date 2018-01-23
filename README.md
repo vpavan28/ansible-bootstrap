@@ -107,7 +107,7 @@ refer to the vars/deployvcsa_EXAMPLE.yml above.
 
 **We can extend the variables which are defined in the groups (such as clusters, vss_portgroups, vds_portgroups, vmkernels, migrate_vmkernels), If we have to add more items in them. Simply copy and define the parameters with in the each group.**
 
-[We need to get the NICs information for the ESXi Host, log in to the ESXi using any browser, poiny your browser to `https://bs_mgmt_host/`and `username: root` `password: bs_mgmt_passwd` values given in /home/ansible/vars/bootstrap_esxi_idrac.yml file. The NIC are the 10G NICs that are isntalled on the server, for use they are vmnic4 and vmnic5. Find yours, and place them in the `dvs_host_vmnics` section of vars/deployvcsa.yml.]
+[We need to get the NICs information for the ESXi Host, log in to the ESXi using any browser, poiny your browser to `https://bs_mgmt_host/ui/#login` [If you see VMware ESXi Welcome Page, click on `Open the VMware Host Client` then you will see a login page. `username: root` `password: bs_mgmt_passwd` values given in /home/ansible/vars/bootstrap_esxi_idrac.yml file. The NIC are the 10G NICs that are isntalled on the server, for use they are vmnic4 and vmnic5. Find yours, and place them in the `dvs_host_vmnics` section of vars/deployvcsa.yml.]
 
 ![VMNic](VMNic.PNG)
 
