@@ -104,10 +104,13 @@ bs_mgmt_passwd: '<BOOT_STRAP_HOST_PASSWORD TO SET>'
 ```yml
 refer to the vars/deployvcsa_EXAMPLE.yml above.
 ```
+**This is an example / template that you can use, but we would replace the all the names , VLAN id and IP/subnets which suits your deployment. This inlcudes all the portgroups and vmkernels which may differ in your environment. Please use this as reference and change accordingly. DO NOT USE THIS AS IS.**
+
+**`<vCenter_PASSWORD>`** password must be between 8 characters and 20 characters long. It must also contain at least one uppercase and lowercaseletter, one number,and one character from `'!\"#$%&'()*+,-./:;<=>?@[\\]^_{|}~'`.
 
 **We can extend the variables which are defined in the groups (such as clusters, vss_portgroups, vds_portgroups, vmkernels, migrate_vmkernels), If we have to add more items in them. Simply copy and define the parameters with in the each group.**
 
-[We need to get the NICs information for the ESXi Host, log in to the ESXi using any browser, poiny your browser to `https://bs_mgmt_host/ui/#login` [If you see VMware ESXi Welcome Page, click on `Open the VMware Host Client` then you will see a login page. `username: root` `password: bs_mgmt_passwd` values given in /home/ansible/vars/bootstrap_esxi_idrac.yml file. The NIC are the 10G NICs that are isntalled on the server, for use they are vmnic4 and vmnic5. Find yours, and place them in the `dvs_host_vmnics` section of vars/deployvcsa.yml.]
+[We need to get the NICs information for the ESXi Host, log in to the ESXi using any browser, poiny your browser to `https://bs_mgmt_host/ui/#login` [If you see VMware ESXi Welcome Page, click on `Open the VMware Host Client` then you will see a login page. `username: root` `password: bs_mgmt_passwd` values given in /home/ansible/vars/bootstrap_esxi_idrac.yml file. The NIC are the 10G NICs that are isntalled on the my server, are vmnic4 and vmnic5. **Find yours, and replace the ones in the `dvs_host_vmnics` section of vars/deployvcsa.yml.]**
 
 ![VMNic](VMNic.PNG)
 
