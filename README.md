@@ -187,8 +187,8 @@ Now, type `python -V` , you should see `2.7.14`. Check `ansible --version`, you 
           pg103-host-pxe: pg603-host-pxe
         networks:
           - name: pg603-host-pxe
-            ip: 100.100.100.100
-            gateway: 100.7.20.1
+            ip: <100.100.100.100, should an IP from the [pg603-host-pxe] PXE NETWORK 10.235.35.0>
+            gateway: <10.235.35.1 [pg603-host-pxe] PXE network Gateway>
             netmask: 255.255.255.0
             device_type: vmxnet3
         customization:
@@ -223,6 +223,18 @@ After the successful run of the playbook without any errors, we should see a VM 
 
 **If you are unable to SSH into the server / can't access the http link, then make sure your adm VM can access the PXE network assigned to pg603-host-pxe**
 
-#### Configuring the DHCP
+### Configuring the DHCP
+
+Assumes that you logged into the UDA http page and can see the Welcome Page.
+* Click on the `services` and you see a list of services such as binl,dhcpd,httpd,tftpd, etc.
+* Click `dhcpd` and click on `configure` button. You should see `Service properties for dhcpd` and an inline window with dhcp configuration info.
+  * Replace all the lines that have `10.7.19.10` to `<IP ADDR of UDA_Deploy VM>`. 
+  * Change `subnet 10.7.19.0 netmask 255.255.255.0 {` to `subnet 10.235.35.0 netmask 255.255.255.0 {`
+  * Please change `range 10.7.19.100 10.7.19.254 ;` to `range 10.235.35.50 10.235.35.200`.
+  * After that, Click on Save button to save the changes made.
+* Click on `OS` under the Ultimate Deployment Appliance Menu bar.
+  * It should display `ESXi6u3	esx6	VMware ESX 6i Installable 	Mounted`.
+* Click on `Templates` under the Ultimate Deployment Appliance Menu bar.
+  *  You Should see, `Esxi6` Template with `Esxi6 Kickstart Instalaltion` as Description.
 
 
