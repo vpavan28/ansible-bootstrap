@@ -162,4 +162,47 @@ Now, type `python -V` , you should see `2.7.14`. Check `ansible --version`, you 
 ```
 `After the successful run of the playbook without any errors, then we have installed the VCSA. Try to access the <VCENTER_FQDN> from any browser, If you see the vcenter login page, then we can login using the credentials supplied in vars/deployvcsa.yml file.`
 
-### > DONE <
+===============================================================================
+
+> ### Deploying the UltimateDeploymentAppliance VM (UDA-Deploy)
+
+1. Deploy a VM , Poweron the deployed VM and wait for the PowerOn to be completed. The `wait_for_ip_address / customization` only works with the VMs which have VMWare_Tools installed in it.
+
+   * Please change the following values accordingly in `../roles/ovf_deploy/tasks/main.yml`. datacenter, datastore, networks (ip, gateway, netmask), customization(domain, dns_servers) that meets the production environment values.
+
+```yml
+---
+    - name: Deploying OVF template into vCenter
+      vmware_deploy_ovf:
+        hostname: '{{ vcenter }}'
+        username: '{{ user_vc }}'
+        password: '{{ pass_vc }}'
+        datacenter: <DATACENTER_NAME in VCenter>
+        datastore: <DATASTORE/DATASTORE_CLUSTER in VCenter>
+        folder: '/vm'
+        disk_provisioning: 'thin'
+        name: 'UDA-Deploy'
+        ovf: '/var/tmp/Dell_Repo/UDA_Deploy/UDA_Deploy.ovf'
+        ovf_networks:
+          pg104-host-mgmt: pg604-host-mgmt
+        networks:
+          - name: pg604-host-mgmt
+            ip: 100.100.100.100
+            gateway: 100.7.20.1
+            netmask: 255.255.255.0
+            device_type: vmxnet3
+        customization:
+          domain: encore-oam.com
+          dns_servers:
+          - 10.100.0.100
+          - 10.100.0.100
+        force: false
+        power_on: true
+        wait: true
+        wait_for_ip_address: true
+        validate_certs: true
+      delegate_to: localhost
+
+```
+
+
