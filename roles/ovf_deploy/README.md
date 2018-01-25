@@ -30,13 +30,10 @@
           GigabitEthernet0-6: pg103-host-pxe
           GigabitEthernet0-7: pg103-host-pxe
           GigabitEthernet0-8: pg103-host-pxe
-#        deployment_option: 'ASAv50'
-#        property_map:
-          #'Configuration': ASAv10
-#          'HARole': Standalone
-          #'DeploymentOptionSection': ASAv10
-          #'Deployment Type': HARole
-#'        networks:
+        deployment_option: 'ASAv50'
+        property_map:
+          'HARole': Standalone
+#        networks:
 #          - name: Management0-0
 #            ip: 10.7.20.121
 #            gateway: 10.7.20.1
@@ -52,8 +49,8 @@
 #          dns_servers:
 #          - 10.231.0.101
 #          - 10.231.0.103
-        power_on: true
         force: false
+        power_on: true
         wait: true
         wait_for_ip_address: false
         validate_certs: False
@@ -118,26 +115,25 @@ options:
        <Property KEY Name from  OVF>: <Proparty VALUE from OVF>
        <Property KEY Name from  OVF>: <Proparty VALUE from OVF>
        <Property KEY Name from  OVF>: <Proparty VALUE from OVF>
-          #'Configuration': ASAv10
-#          'HARole': Standalone
-          #'DeploymentOptionSection': ASAv10
-          #'Deployment Type': HARole
-#'        networks:
-#          - name: Management0-0
-#            ip: 10.7.20.121
-#            gateway: 10.7.20.1
-#            netmask: 255.255.255.0
+        #default: If no value is specified for an option, the  default value from the OVF descriptor is used.
+        #description: The assignment of property values to the properties found in the descriptor, if at all defined in the OVF file.           #Depending on this you can choose Deploymnet Type etc. if PRE-DEFINED in the OVF.
+    networks:
+      - name: <Name of PortGroup which attached to the VM, should be equal to the one defined in ovf_networks above>
+        ip: <IP ADDRESS which you want to assign to this interface>
+        gateway: <GATEWAY>
+        netmask: <SUBNET MASK 255.255.255.0 in this format>
+        device_type: <Type of Virtual network devices (one of e1000, e1000e, pcnet32, vmxnet2, vmxnet3 (default: sriov)>
+#          - name: dPG000-host-iscsi2
+#            ip: 000.000.000.000
+#            gateway: 000.000.000.000
+#            netmask: 000.000.000.000
 #            device_type: vmxnet3
-#          - name: dPG105-host-iscsi2
-#            ip: 10.7.22.172
-#            gateway: 10.7.22.1
-#            netmask: 255.255.255.0
-#            device_type: vmxnet3
-#        customization:
-#          domain: encore-oam.com
-#          dns_servers:
-#          - 10.231.0.101
-#          - 10.231.0.103
+        customization:
+          hostname: <Computer hostname (default: name of the VM defined in Vcenter)>
+          domain: <DOMAIN NAME>
+          dns_servers:
+          - <PRIMARY DNS>
+          - <SECONDARY DNS>
      
 ```
 
