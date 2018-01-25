@@ -35,20 +35,20 @@
           'HARole': Standalone
 #        networks:
 #          - name: Management0-0
-#            ip: 10.7.20.121
-#            gateway: 10.7.20.1
+#            ip: 100.100.100.100
+#            gateway: 100.7.20.1
 #            netmask: 255.255.255.0
 #            device_type: vmxnet3
 #          - name: dPG105-host-iscsi2
-#            ip: 10.7.22.172
-#            gateway: 10.7.22.1
+#            ip: 10.100.22.172
+#            gateway: 10.7.100.1
 #            netmask: 255.255.255.0
 #            device_type: vmxnet3
 #        customization:
 #          domain: encore-oam.com
 #          dns_servers:
-#          - 10.231.0.101
-#          - 10.231.0.103
+#          - 10.100.0.100
+#          - 10.100.0.100
         force: false
         power_on: true
         wait: true
