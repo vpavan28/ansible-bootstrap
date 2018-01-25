@@ -192,7 +192,7 @@ Now, type `python -V` , you should see `2.7.14`. Check `ansible --version`, you 
             netmask: 255.255.255.0
             device_type: vmxnet3
         customization:
-          domain: encore-oam.com
+          domain: abc.com
           dns_servers:
           - 10.100.0.100
           - 10.100.0.100
@@ -204,5 +204,24 @@ Now, type `python -V` , you should see `2.7.14`. Check `ansible --version`, you 
       delegate_to: localhost
 
 ```
+
+```console
+
+[ansible@vcnms-lab-linux ~]$ ansible-playbook -i inventory/hosts_prod playbooks/ovf_deploy.yml
+```
+
+After the successful run of the playbook without any errors, we should see a VM with name `UDA_Deploy` in VCenter. It should be powered on and running. Watch out for any errors in Tasks windows of vCenter which may occur. 
+
+* Log into the VM via SSH. `username: root and password: melody`.
+* Check the httpd service status: service httpd status
+  * It should httpd service running.
+* Check the dhcpd service status: service dhcpd status
+  * It should dhcpd service running
+* Point your browser to http://<IP ADDR of the UDA_Deploy VM>
+  * In Authentication window, enter `username: admin and password: melody`
+  * You should see 'Ultimate Deployment Appliance Welcome Page'
+
+**If you are unable to SSH into the server / can't access the http link, then make sure your adm VM can access the PXE network.**
+
 
 
