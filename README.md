@@ -258,13 +258,13 @@ SUBTEMPLATE;MAC;HOSTNAME;DOMAIN;MGMT_VLAN;MGMT_IP;MGMT_MASK;DEF_GW;DNS1;DNS2
 ```
 * Click on `Save` button to store the changes made.
 
-**If everthing went smooth, we would be ready to esxecute the Kickstart Installation of ESXi on the chosen host.**
+**If everything  went smooth, we would be ready to execute the Kickstart Installation of ESXi on the chosen host.**
 * Open the iDrac console corresponding to the host chosen for Dry run.
 * Choose the next boot mode to `PXE boot` from the Virtual Console. [If `ansible-racadm` scripts were executed on this iDrac then the `NIC3 should be pointed to PXE.`]
 * Reboot the server.
 * When the server is up, it should go into PXE mode and you should see UDA ESXi Kickstart menu.
 * If needed, press `Enter` and it should load the Kickstart Configuration to Install ESXi6.0 on that host.
-* Once the instalaltion is completed, you will be able to see ESXI6.0 on that server.
+* Once the installation  is completed, you will be able to see ESXI6.0 on that server.
 * Point your browser to http://<HOST_MANAGEMENT_IP> and you will see Vmware Esxi Welcome page.
 * If you see VMware ESXi Welcome Page, click on `Open the VMware Host Client` then you will see a login page. `username: root` `password: <Mentioned above in the kickstart configuration file>`.
 
@@ -272,5 +272,5 @@ SUBTEMPLATE;MAC;HOSTNAME;DOMAIN;MGMT_VLAN;MGMT_IP;MGMT_MASK;DEF_GW;DNS1;DNS2
 
 > **We should have all the LOM3/NIC3 addresses from all the servers before we execute.**
 
---## DONE --
+## DONE
 
