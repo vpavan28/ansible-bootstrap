@@ -226,7 +226,7 @@ After the successful run of the playbook without any errors, we should see a VM 
 ### Configuring the DHCP
 
 Assumes that you logged into the UDA http page and can see the Welcome Page.
-* Click on the `services` and you see a list of services such as binl,dhcpd,httpd,tftpd, etc.
+* Click on the `services` and you see a list of services such as binl, dhcpd, httpd, tftpd, etc.
 * Click `dhcpd` and click on `configure` button. You should see `Service properties for dhcpd` and an inline window with dhcp configuration info.
   * Replace all the lines that have `10.7.19.10` to `<IP ADDR of UDA_Deploy VM>`. 
   * Change `subnet 10.7.19.0 netmask 255.255.255.0 {` to `subnet 10.235.35.0 netmask 255.255.255.0 {`
@@ -235,16 +235,42 @@ Assumes that you logged into the UDA http page and can see the Welcome Page.
 * Click on `OS` under the Ultimate Deployment Appliance Menu bar.
   * It should display `ESXi6u3	esx6	VMware ESX 6i Installable 	Mounted`.
 * Click on `Templates` under the Ultimate Deployment Appliance Menu bar.
-  * You Should see, `Esxi6` Template with `Esxi6 Kickstart Instalaltion` as Description.
+  * You Should see, `Esxi6` Template with `Esxi6 Kickstart Installation` as Description.
 * Click on the `Esxi6` to select the row, and then Click on the `Configure` button.
-  * `Configure template Esxi6` will be deisplayed with `General, Subtemplates, Advanced`.
+  * `Configure template Esxi6` will be displayed  with `General, Subtemplates, Advanced`.
 * Click on `Advanced` Tab and you should see a Kickstart configuration file used for ESXi KS Installation.
   * Inside the `Kickstart File`: Change the following
-    * rootpw `Melody1!` chnage to reflect the root password you want `root <ESXI_ROOT_PASSWORD>`.
-    * find `pg104-host-mgmt` and replace it with `pg604-host-mgmt`. Replace all the occurances.
-  * Click on the `Save` button to save the chnages made.
+    * rootpw `Melody1!` change  to reflect the root password you want `root <ESXI_ROOT_PASSWORD>`.
+    * find `pg104-host-mgmt` and replace it with `pg604-host-mgmt`. Replace all the occurrences.
+  * Click on the `Save` button to save the changes made.
   * The text you see inside [] tags are the variables and they should match the `header/column names` under the `Subtemplates` tab.
 * Click on the `Subtemplates` Tab, it will display a table containing information from the labs hosts.
 
-> **Before we process further, make sure you have all the MAC addresses from the servers available to you.**
+> **Make sure you have all LOM3/NIC3 MAC addresses from the servers available to you.**
+
+**Dry RUN:** [Lets take only ONE ESXi host.]
+* Click on `Edit` button under the `Subtemplates` tab.
+  * You will see a tab with `Subtemplate Manual Edit`.
+  * Replace All contents using the corresponding values that are related to the chosen host details for the dry run.[Below is an example, but we need to fill out the details.]
+```yml
+SUBTEMPLATE;MAC;HOSTNAME;DOMAIN;MGMT_VLAN;MGMT_IP;MGMT_MASK;DEF_GW;DNS1;DNS2
+<HOSTNAME>;<LOM3_MAC_ADDRESS>;<DNS_HOSTNAME>;<DOMAIN>;<VLAN_HOST_MANAGEMENT>;<HOST_MANAGEMENT_IP>;<HOST_MANAGEMENT_SUBNET>;<HOST_MANAGEMENT_GATEWAY>;<PDNS>;<SDNS>
+```
+* Click on `Save` button to store the changes made.
+
+**If everthing went smooth, we would be ready to esxecute the Kickstart Installation of ESXi on the chosen host.**
+* Open the iDrac console corresponding to the host chosen for Dry run.
+* Choose the next boot mode to `PXE boot` from the Virtual Console. [If `ansible-racadm` scripts were executed on this iDrac then the `NIC3 should be pointed to PXE.`]
+* Reboot the server.
+* When the server is up, it should go into PXE mode and you should see UDA ESXi Kickstart menu.
+* If needed, press `Enter` and it should load the Kickstart Configuration to Install ESXi6.0 on that host.
+* Once the instalaltion is completed, you will be able to see ESXI6.0 on that server.
+* Point your browser to http://<HOST_MANAGEMENT_IP> and you will see Vmware Esxi Welcome page.
+* If you see VMware ESXi Welcome Page, click on `Open the VMware Host Client` then you will see a login page. `username: root` `password: <Mentioned above in the kickstart configuration file>`.
+
+> If this successful, then we can run the same steps (from: Dry RUN) for all the hosts at once. 
+
+> **We should have all the LOM3/NIC3 addresses from all the servers before we execute.**
+
+--## DONE --
 
