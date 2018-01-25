@@ -1,0 +1,64 @@
+#### How to use this role.
+
+> Deploy a VM from a ovf file (should also work for ova too, but haven't tested the functionality).
+
+1. Deploy a VM , Poweron the deployed VM and wait for the PowerOn to be completed.
+
+   * Please change the following values accordingly in `../roles/ovf_deploy/tasks/main.yml`
+
+```yml
+---
+    - name: Deploying OVF template into vCenter
+      vmware_deploy_ovf:
+        hostname: '{{ vcenter }}'
+        username: '{{ user_vc }}'
+        password: '{{ pass_vc }}'
+        datacenter: <DATACENTER_NAME in VCenter>
+        datastore: <DATASTORE/DATASTORE_CLUSTER in VCenter>
+        folder: '/vm'
+        disk_provisioning: 'thin'
+        name: 'Test-ASAv13'
+        ovf: '/tmp/asav982/asav-vi.ovf'
+        ovf_networks:
+          Management0-0: pg104-host-mgmt
+          GigabitEthernet0-0: pg103-host-pxe
+          GigabitEthernet0-1: pg103-host-pxe
+          GigabitEthernet0-2: pg103-host-pxe
+          GigabitEthernet0-3: pg103-host-pxe
+          GigabitEthernet0-4: pg103-host-pxe
+          GigabitEthernet0-5: pg103-host-pxe
+          GigabitEthernet0-6: pg103-host-pxe
+          GigabitEthernet0-7: pg103-host-pxe
+          GigabitEthernet0-8: pg103-host-pxe
+#        deployment_option: 'ASAv50'
+#        property_map:
+          #'Configuration': ASAv10
+#          'HARole': Standalone
+          #'DeploymentOptionSection': ASAv10
+          #'Deployment Type': HARole
+#'        networks:
+#          - name: Management0-0
+#            ip: 10.7.20.121
+#            gateway: 10.7.20.1
+#            netmask: 255.255.255.0
+#            device_type: vmxnet3
+#          - name: dPG105-host-iscsi2
+#            ip: 10.7.22.172
+#            gateway: 10.7.22.1
+#            netmask: 255.255.255.0
+#            device_type: vmxnet3
+#        customization:
+#          domain: encore-oam.com
+#          dns_servers:
+#          - 10.231.0.101
+#          - 10.231.0.103
+        power_on: true
+        force: false
+        wait: true
+        wait_for_ip_address: false
+        validate_certs: False
+      delegate_to: localhost
+
+```
+
+
