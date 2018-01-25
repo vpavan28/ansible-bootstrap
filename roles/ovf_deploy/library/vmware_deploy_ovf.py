@@ -182,7 +182,7 @@ class TarFileProgressReader(tarfile.ExFileObject):
 
 
 class VMDKUploader(Thread):
-    def __init__(self, vmdk, url, validate_certs=True, tarinfo=None):
+    def __init__(self, vmdk, url, validate_certs=True, tarinfo=None, create=False):
         Thread.__init__(self)
 
         self.vmdk = vmdk
@@ -198,6 +198,7 @@ class VMDKUploader(Thread):
 
         self.f = None
         self.e = None
+        self._create = create
 
     @property
     def bytes_read(self):
@@ -205,6 +206,31 @@ class VMDKUploader(Thread):
             return self.f.bytes_read
         except AttributeError:
             return 0
+
+    def _request_opts(self):
+        '''
+        Requests for vmdk files differ from other file types. Build the request options here to handle that
+        '''
+        headers = {
+            'Content-Length': self.size
+        }
+
+        if self._create:
+            # Non-VMDK
+            method = 'PUT'
+            headers['Overwrite'] = 't'
+        else:
+            # VMDK
+            method = 'POST'
+            headers['Content-Type'] = 'application/x-vnd.vmware-streamVmdk'
+
+        return {
+            'method': method,
+            'headers': headers,
+        }
+
+    def _open_url(self):
+        open_url(self.url, data=self.f, validate_certs=self.validate_certs, **self._request_opts())
 
     def run(self):
         headers = {
@@ -215,13 +241,13 @@ class VMDKUploader(Thread):
         if self.tarinfo:
             try:
                 with TarFileProgressReader(self.vmdk, self.tarinfo) as self.f:
-                    open_url(self.url, data=self.f, headers=headers, method='POST', validate_certs=self.validate_certs)
+                    self._open_url()
             except Exception:
                 self.e = sys.exc_info()
         else:
             try:
                 with ProgressReader(self.vmdk, 'rb') as self.f:
-                    open_url(self.url, data=self.f, headers=headers, method='POST', validate_certs=self.validate_certs)
+                    self._open_url()
             except Exception:
                 self.e = sys.exc_info()
 
@@ -236,6 +262,7 @@ class VMwareDeployOvf:
         self.datacenter = None
         self.resource_pool = None
         self.network_mappings = []
+        self.property_mappings = []
 
         self.ovf_descriptor = None
         self.tar = None
@@ -273,8 +300,16 @@ class VMwareDeployOvf:
             network_mapping.name = key
             network_mapping.network = network
             self.network_mappings.append(network_mapping)
+       
+        if self.params['property_map']:
+            for key, value in self.params['property_map'].items():
+                property_map = vim.KeyValue()
+                property_map.key = key
+                property_map.value = value
+                self.property_mappings.append(property_map)
 
-        return self.datastore, self.datacenter, self.resource_pool, self.network_mappings
+
+        return self.datastore, self.datacenter, self.resource_pool, self.network_mappings, self.property_mappings
         #return self.datastore, self.datacenter, self.vm, self.resource_pool, self.network_mappings
         #return self.datastore
 
@@ -298,7 +333,7 @@ class VMwareDeployOvf:
         return self.ovf_descriptor
 
     def get_lease(self):
-        datastore, datacenter, resource_pool, network_mappings = self.get_objects()
+        datastore, datacenter, resource_pool, network_mappings, property_mappings = self.get_objects()
 
         params = {
             'diskProvisioning': self.params['disk_provisioning'],
@@ -307,6 +342,10 @@ class VMwareDeployOvf:
             params['entityName'] = self.params['name']
         if network_mappings:
             params['networkMapping'] = network_mappings
+        if property_mappings:
+            params['propertyMapping'] = property_mappings
+        if self.params['deployment_option']:
+            params['deploymentOption'] = self.params['deployment_option']
 
         spec_params = vim.OvfManager.CreateImportSpecParams(**params)
 
@@ -324,10 +363,16 @@ class VMwareDeployOvf:
         #    datacenter.vmFolder
         #)
 
-        joined_errors = '. '.join(to_native(e.msg) for e in getattr(self.import_spec, 'error', []))
-        if joined_errors:
+        #joined_errors = '. '.join(to_native(e.msg) for e in getattr(self.import_spec, 'error', []))
+        errors = [to_native(e.msg) for e in getattr(self.import_spec, 'error', [])]
+        spec_warnings = True
+        if spec_warnings:
+            errors.extend(
+                (to_native(w.msg) for w in getattr(self.import_spec, 'warning', []))
+            )    
+        if errors:
             self.module.fail_json(
-                msg='Failure validating import spec: %s' % joined_errors
+                msg='Failure validating OVF import spec: %s' % '. '.join(errors)
             )
 
         for warning in getattr(self.import_spec, 'warning', []):
@@ -402,18 +447,19 @@ class VMwareDeployOvf:
                     vmdk,
                     vmdk_post_url,
                     self.params['validate_certs'],
-                    tarinfo=vmdk_tarinfo
+                    tarinfo=vmdk_tarinfo,
+                    create=file_item.create
                 )
             )
 
-            total_size = sum(u.size for u in uploaders)
-            total_bytes_read = [0] * len(uploaders)
-            for i, uploader in enumerate(uploaders):
-                uploader.start()
-                while uploader.is_alive():
-                    time.sleep(0.1)
-                    total_bytes_read[i] = uploader.bytes_read
-                    lease.HttpNfcLeaseProgress(int(100.0 * sum(total_bytes_read) / total_size))
+        total_size = sum(u.size for u in uploaders)
+        total_bytes_read = [0] * len(uploaders)
+        for i, uploader in enumerate(uploaders):
+            uploader.start()
+            while uploader.is_alive():
+                time.sleep(0.1)
+                total_bytes_read[i] = uploader.bytes_read
+                lease.HttpNfcLeaseProgress(int(100.0 * sum(total_bytes_read) / total_size))
 
             if uploader.e:
                 lease.HttpNfcLeaseAbort(
@@ -432,7 +478,12 @@ class VMwareDeployOvf:
         if self.params['power_on']:
             task = self.entity.PowerOn()
             if self.params['wait']:
-                wait_for_task(task)
+                try:
+                    wait_for_task(task)
+                except Exception,e:
+                    self.module.fail_json(msg="Unable to PowerOn VM due to: %s" % to_native(e.message.msg))
+                if task.info.state == 'error':
+                    self.module.exit_json(msg="Error occured: %s" % to_native(task.info.error.msg))
                 if self.params['wait_for_ip_address']:
                     _facts = wait_for_vm_ip(self.si, self.entity)
                     if not _facts:
@@ -446,20 +497,29 @@ class VMwareDeployOvf:
 
     def vm_power_on(self, vm_obj):
         facts = {}
-        if self.params['power_on']:
-            task = vm_obj.PowerOn()
-            if self.params['wait']:
-                wait_for_task(task)
-                if self.params['wait_for_ip_address']:
-                    _facts = wait_for_vm_ip(self.si, vm_obj)
-                    if not _facts:
-                        self.module.fail_json(msg='Waiting for IP address timed out')
-                    facts.update(_facts)
+        try:
+            if self.params['power_on']:
+                task = vm_obj.PowerOn()
+                if self.params['wait']:
+                    wait_for_task(task)
+                    if self.params['wait_for_ip_address']:
+                        _facts = wait_for_vm_ip(self.si, vm_obj)
+                        if not _facts:
+                            self.module.fail_json(msg='Waiting for IP address timed out')
+                        facts.update(_facts)
+        except Exception,e:
+            module.fail_json(msg="Error received from vCenter" % e.message.msg)
 
         if not facts:
             gather_vm_facts(self.si, vm_obj)
 
         return facts
+
+def custom_wait_for_task(task, module):
+        try:
+            wait_for_task(task)
+        except Exception,e:
+            module.fail_json(msg="Error received from vCenter" % e.message.msg)
 
 
 def main():
@@ -473,6 +533,8 @@ def main():
         resource_pool=dict(type='str', default='Resources'),
 	name_match=dict(type='str', choices=['first', 'last'], default='first'),
         networks=dict(type='list', default=[]),
+        property_map=dict(type='dict', default={}),
+        deployment_option=dict(type='str', default=None),
         uuid=dict(type='str'),
         folder=dict(type='str', default='/vm'),
         ovf_networks=dict(type='dict', default={'VM Network': 'VM Network'}),
@@ -543,13 +605,31 @@ def main():
             deploy_ovf_PyVmH.customize_vm(vm_deploy)
             myspec=deploy_ovf_PyVmH.customspec
             task=vm_deploy.CustomizeVM_Task(spec=myspec)
-            facts = deploy_ovf.vm_power_on(vm_deploy)
+
+#            custom_wait_for_task(task, module)
+ 
+            try:
+                wait_for_task(task) 
+            except Exception,e:
+                module.fail_json(msg="Error:%s" % e.message.msg)
+            if task.info.state == 'error':
+                module.fail_json(msg="Error occured: %s" % to_native(task.info.error.msg))
+
+            try:
+               facts = deploy_ovf.vm_power_on(vm_deploy)
+            except Esxeption,e:
+               module.fail_json(msg="Error from vCenter: %s" % e.message.msg)
 
             #wait_for_task(task)
             #facts = deploy_ovf.power_on()
             #module.exit_json(instance=facts)
         else:
-            facts = deploy_ovf.power_on()
+            try:
+                facts = deploy_ovf.power_on()
+            except Exception,e:
+                module.fail_json(msg="Error: %s" %(e.message.msg))
+            #if task.info.state == 'error':
+            #    module.exit_json(msg="Error occured: %s" % to_native(task.info.error.msg))
 
     #for item in datacenter.items():
     #    vobj = item[0]
