@@ -235,6 +235,16 @@ Assumes that you logged into the UDA http page and can see the Welcome Page.
 * Click on `OS` under the Ultimate Deployment Appliance Menu bar.
   * It should display `ESXi6u3	esx6	VMware ESX 6i Installable 	Mounted`.
 * Click on `Templates` under the Ultimate Deployment Appliance Menu bar.
-  *  You Should see, `Esxi6` Template with `Esxi6 Kickstart Instalaltion` as Description.
+  * You Should see, `Esxi6` Template with `Esxi6 Kickstart Instalaltion` as Description.
+* Click on the `Esxi6` to select the row, and then Click on the `Configure` button.
+  * `Configure template Esxi6` will be deisplayed with `General, Subtemplates, Advanced`.
+* Click on `Advanced` Tab and you should see a Kickstart configuration file used for ESXi KS Installation.
+  * Inside the `Kickstart File`: Change the following
+    * rootpw `Melody1!` chnage to reflect the root password you want `root <ESXI_ROOT_PASSWORD>`.
+    * find `pg104-host-mgmt` and replace it with `pg604-host-mgmt`. Replace all the occurances.
+  * Click on the `Save` button to save the chnages made.
+  * The text you see inside [] tags are the variables and they should match the `header/column names` under the `Subtemplates` tab.
+* Click on the `Subtemplates` Tab, it will display a table containing information from the labs hosts.
 
+> **Before we process further, make sure you have all the MAC addresses from the servers available to you.**
 
