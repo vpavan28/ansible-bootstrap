@@ -184,9 +184,9 @@ Now, type `python -V` , you should see `2.7.14`. Check `ansible --version`, you 
         name: 'UDA-Deploy'
         ovf: '/var/tmp/Dell_Repo/UDA_Deploy/UDA_Deploy.ovf'
         ovf_networks:
-          pg104-host-mgmt: pg604-host-mgmt
+          pg103-host-pxe: pg603-host-pxe
         networks:
-          - name: pg604-host-mgmt
+          - name: pg603-host-pxe
             ip: 100.100.100.100
             gateway: 100.7.20.1
             netmask: 255.255.255.0
@@ -217,11 +217,12 @@ After the successful run of the playbook without any errors, we should see a VM 
   * It should httpd service running.
 * Check the dhcpd service status: service dhcpd status
   * It should dhcpd service running
-* Point your browser to http://<IP ADDR of the UDA_Deploy VM>
+* Point your browser to `http://<IP ADDR of the UDA_Deploy VM>`
   * In Authentication window, enter `username: admin and password: melody`
   * You should see 'Ultimate Deployment Appliance Welcome Page'
 
-**If you are unable to SSH into the server / can't access the http link, then make sure your adm VM can access the PXE network.**
+**If you are unable to SSH into the server / can't access the http link, then make sure your adm VM can access the PXE network assigned to pg603-host-pxe**
 
+#### Configuring the DHCP
 
 
