@@ -168,9 +168,9 @@ Now, type `python -V` , you should see `2.7.14`. Check `ansible --version`, you 
 
 1. Deploy a VM , Poweron the deployed VM and wait for the PowerOn to be completed. The `wait_for_ip_address / customization` only works with the VMs which have VMWare_Tools installed in it.
 
-* Change the values in the ../vars/ovf_deploy.yml file contents to reflect the actual parameters. Thease are the parameters that are used to access the vCenter once it is up and running.
+* Change the values in the `../vars/ovf_deploy.yml` file contents to reflect the actual parameters. Thease are the parameters that are used to access the vCenter once it is up and running.
 
-   * Please change the following values accordingly in `../roles/ovf_deploy/tasks/main.yml`. datacenter, datastore, networks (ip, gateway, netmask), customization(domain, dns_servers) that meets the production environment values.
+* Please change the following values accordingly in `../roles/ovf_deploy/tasks/main.yml`. datacenter, datastore, networks (ip, gateway, netmask), customization(domain, dns_servers) that meets the production environment values.
 
 ```yml
 ---
