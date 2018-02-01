@@ -617,7 +617,7 @@ def main():
 
             try:
                facts = deploy_ovf.vm_power_on(vm_deploy)
-            except Esxeption,e:
+            except Exception,e:
                module.fail_json(msg="Error from vCenter: %s" % e.message.msg)
 
             #wait_for_task(task)
