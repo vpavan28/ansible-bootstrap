@@ -508,7 +508,7 @@ class VMwareDeployOvf:
                             self.module.fail_json(msg='Waiting for IP address timed out')
                         facts.update(_facts)
         except Exception,e:
-            module.fail_json(msg="Error received from vCenter" % e.message.msg)
+            self.module.fail_json(msg="Error received from vCenter:%s" % (e.message.msg))
 
         if not facts:
             gather_vm_facts(self.si, vm_obj)
@@ -616,9 +616,9 @@ def main():
                 module.fail_json(msg="Error occured: %s" % to_native(task.info.error.msg))
 
             try:
-               facts = deploy_ovf.vm_power_on(vm_deploy)
+                facts = deploy_ovf.vm_power_on(vm_deploy)
             except Exception,e:
-               module.fail_json(msg="Error from vCenter: %s" % e.message.msg)
+                module.fail_json(msg="Error from vCenter: %s" % (e.message))
 
             #wait_for_task(task)
             #facts = deploy_ovf.power_on()
