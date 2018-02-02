@@ -80,6 +80,7 @@
         src: /var/tmp/esxi_bootstrap.iso
         dest: /var/tmp/nfs_esxi_share/
         force: yes
+        mode: 0777
 
 
     - name: Delete esxi6u3_dell Directory
