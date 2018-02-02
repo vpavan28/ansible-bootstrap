@@ -31,11 +31,15 @@
         "os": {
             "password": "{{ vcenter.password }}",
             "ssh.enable": true
+            "ntp.servers": [
+                "{{ server1 }}",
+                "{{ server2 }}"
+            ],
         },
         "sso": {
             "password": "{{ vcenter.password }}",
             "domain-name": "{{ vcenter.domain }}",
-            "site-name": "vCNMS6_vCenter60_Site"
+            "site-name": "vCNMS6-vCenter6-Site"
         }
 
     }
