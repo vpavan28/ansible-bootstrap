@@ -15,7 +15,7 @@
         password: '{{ pass_vc }}'
         datacenter: <DATACENTER_NAME in VCenter>
         datastore: <DATASTORE/DATASTORE_CLUSTER in VCenter>
-        folder: '/vm'
+        folder: '/<DATACENTER_NAME in VCenter>'
         disk_provisioning: 'thin'
         name: 'Test-ASAv13'
         ovf: '/tmp/asav982/asav-vi.ovf'
